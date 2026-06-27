@@ -320,14 +320,14 @@ app.post('/api/visitors', async (req, res) => {
 
 // ============================================================================
 // PASTE THIS ENTIRE SECTION INTO YOUR tagme-backend-server.js
-// PASTE IT AFTER YOUR EXISTING ENDPOINTS AND BEFORE app.listen()
+// USES verifyToken (not authenticateToken) - MATCHES YOUR SERVER
 // ============================================================================
 
 /**
  * GET /api/admin/analytics/visitors
  * Get all visitors across all customers with pagination
  */
-app.get('/api/admin/analytics/visitors', authenticateToken, async (req, res) => {
+app.get('/api/admin/analytics/visitors', verifyToken, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
@@ -373,7 +373,7 @@ app.get('/api/admin/analytics/visitors', authenticateToken, async (req, res) => 
 /**
  * GET /api/admin/analytics/visitors/by-date/:date
  */
-app.get('/api/admin/analytics/visitors/by-date/:date', authenticateToken, async (req, res) => {
+app.get('/api/admin/analytics/visitors/by-date/:date', verifyToken, async (req, res) => {
   try {
     const { date } = req.params;
     
@@ -416,7 +416,7 @@ app.get('/api/admin/analytics/visitors/by-date/:date', authenticateToken, async 
 /**
  * GET /api/admin/analytics/new-contacts
  */
-app.get('/api/admin/analytics/new-contacts', authenticateToken, async (req, res) => {
+app.get('/api/admin/analytics/new-contacts', verifyToken, async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 7;
     
@@ -455,7 +455,7 @@ app.get('/api/admin/analytics/new-contacts', authenticateToken, async (req, res)
 /**
  * GET /api/customer/analytics/visitors
  */
-app.get('/api/customer/analytics/visitors', authenticateToken, async (req, res) => {
+app.get('/api/customer/analytics/visitors', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const limit = parseInt(req.query.limit) || 50;
@@ -497,7 +497,7 @@ app.get('/api/customer/analytics/visitors', authenticateToken, async (req, res) 
 /**
  * GET /api/customer/analytics/visitors/by-date/:date
  */
-app.get('/api/customer/analytics/visitors/by-date/:date', authenticateToken, async (req, res) => {
+app.get('/api/customer/analytics/visitors/by-date/:date', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { date } = req.params;
@@ -534,7 +534,7 @@ app.get('/api/customer/analytics/visitors/by-date/:date', authenticateToken, asy
 /**
  * GET /api/customer/analytics/new-contacts
  */
-app.get('/api/customer/analytics/new-contacts', authenticateToken, async (req, res) => {
+app.get('/api/customer/analytics/new-contacts', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const days = parseInt(req.query.days) || 7;
@@ -567,7 +567,7 @@ app.get('/api/customer/analytics/new-contacts', authenticateToken, async (req, r
 /**
  * GET /api/customer/visitors/:visitorId
  */
-app.get('/api/customer/visitors/:visitorId', authenticateToken, async (req, res) => {
+app.get('/api/customer/visitors/:visitorId', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { visitorId } = req.params;
