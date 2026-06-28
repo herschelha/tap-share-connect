@@ -351,7 +351,7 @@ app.get('/api/admin/analytics/visitors', verifyToken, async (req, res) => {
         v.phone, 
         v.company,
         v.created_at,
-        u.username as customer_name
+        u.full_name as customer_name
       FROM visitors v
       LEFT JOIN users u ON v.user_id = u.id
       ORDER BY v.created_at ${sort}
@@ -394,7 +394,7 @@ app.get('/api/admin/analytics/visitors/by-date/:date', verifyToken, async (req, 
         v.phone,
         v.company,
         v.created_at,
-        u.username as customer_name
+        u.full_name as customer_name
       FROM visitors v
       LEFT JOIN users u ON v.user_id = u.id
       WHERE DATE(v.created_at) = $1
@@ -433,7 +433,7 @@ app.get('/api/admin/analytics/new-contacts', verifyToken, async (req, res) => {
         v.phone,
         v.company,
         v.created_at,
-        u.username as customer_name
+        u.full_name as customer_name
       FROM visitors v
       LEFT JOIN users u ON v.user_id = u.id
       WHERE v.created_at >= NOW() - INTERVAL '${days} days'
