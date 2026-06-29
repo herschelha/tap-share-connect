@@ -457,7 +457,7 @@ app.get('/api/admin/analytics/new-contacts', verifyToken, async (req, res) => {
  */
 app.get('/api/customer/analytics/visitors', verifyToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
     const sort = req.query.sort === 'oldest' ? 'ASC' : 'DESC';
@@ -499,7 +499,7 @@ app.get('/api/customer/analytics/visitors', verifyToken, async (req, res) => {
  */
 app.get('/api/customer/analytics/visitors/by-date/:date', verifyToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = reqreq.user.userId;
     const { date } = req.params;
     
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -536,7 +536,7 @@ app.get('/api/customer/analytics/visitors/by-date/:date', verifyToken, async (re
  */
 app.get('/api/customer/analytics/new-contacts', verifyToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const days = parseInt(req.query.days) || 7;
 
     const result = await pool.query(
@@ -569,7 +569,7 @@ app.get('/api/customer/analytics/new-contacts', verifyToken, async (req, res) =>
  */
 app.get('/api/customer/visitors/:visitorId', verifyToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const { visitorId } = req.params;
 
     const result = await pool.query(
