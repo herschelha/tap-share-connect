@@ -120,8 +120,8 @@ app.get('/api/admin/dashboard', verifyToken, async (req, res) => {
     const customers = await pool.query('SELECT COUNT(*) as count FROM users WHERE role = $1', ['customer']);
     const totalCustomers = customers.rows[0].count;
     
-    // Total scans
-    const scans = await pool.query('SELECT COUNT(*) as count FROM visitors');
+    // Total scans (real tag taps, separate from visitors who left details)
+    const scans = await pool.query('SELECT COUNT(*) as count FROM scans');
     const totalScans = scans.rows[0].count;
     
     // Total revenue
@@ -137,7 +137,7 @@ app.get('/api/admin/dashboard', verifyToken, async (req, res) => {
     
     // Scans this month
     const scansThisMonth = await pool.query(
-      'SELECT COUNT(*) as count FROM visitors WHERE created_at > NOW() - INTERVAL \'30 days\''
+      'SELECT COUNT(*) as count FROM scans WHERE scanned_at > NOW() - INTERVAL \'30 days\''
     );
     const monthScans = scansThisMonth.rows[0].count;
     
@@ -150,7 +150,7 @@ app.get('/api/admin/dashboard', verifyToken, async (req, res) => {
         s.tier,
         s.price,
         s.status,
-        (SELECT COUNT(*) FROM visitors WHERE user_id = u.id) as total_scans
+        (SELECT COUNT(*) FROM scans WHERE user_id = u.id) as total_scans
       FROM users u
       LEFT JOIN subscriptions s ON u.id = s.user_id
       WHERE u.role = 'customer'
@@ -189,28 +189,28 @@ app.get('/api/customer/dashboard', verifyToken, async (req, res) => {
       [userId]
     );
     
-    // Total scans
+    // Total scans (real tag taps)
     const scans = await pool.query(
-      'SELECT COUNT(*) as count FROM visitors WHERE user_id = $1',
+      'SELECT COUNT(*) as count FROM scans WHERE user_id = $1',
       [userId]
     );
     const totalScans = scans.rows[0].count;
     
     // Scans this month
     const monthScans = await pool.query(
-      'SELECT COUNT(*) as count FROM visitors WHERE user_id = $1 AND created_at > NOW() - INTERVAL \'30 days\'',
+      'SELECT COUNT(*) as count FROM scans WHERE user_id = $1 AND scanned_at > NOW() - INTERVAL \'30 days\'',
       [userId]
     );
     const scansThisMonth = monthScans.rows[0].count;
     
     // Scans this week
     const weekScans = await pool.query(
-      'SELECT COUNT(*) as count FROM visitors WHERE user_id = $1 AND created_at > NOW() - INTERVAL \'7 days\'',
+      'SELECT COUNT(*) as count FROM scans WHERE user_id = $1 AND scanned_at > NOW() - INTERVAL \'7 days\'',
       [userId]
     );
     const scansThisWeek = weekScans.rows[0].count;
     
-    // New visitors this week
+    // New visitors this week (people who actually left their details)
     const newVisitors = await pool.query(
       'SELECT COUNT(*) as count FROM visitors WHERE user_id = $1 AND created_at > NOW() - INTERVAL \'7 days\'',
       [userId]
@@ -314,6 +314,27 @@ app.post('/api/visitors', async (req, res) => {
     
     res.status(201).json(result.rows[0]);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Log a tag tap/scan (called the moment the landing page loads — no form required)
+app.post('/api/scan', async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO scans (user_id) VALUES ($1) RETURNING *',
+      [userId]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error logging scan:', error);
     res.status(500).json({ error: error.message });
   }
 });
