@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TagMe - Set Landing Page PIN</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f9fafb;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .box {
+    background: white;
+    border-radius: 20px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+  }
+  h1 {
+    font-size: 19px;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+  input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: inherit;
+  }
+  input:focus { outline: none; border-color: #3b82f6; }
+  button {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 20px;
+  }
+  button:disabled { opacity: 0.6; cursor: default; }
+  button.secondary {
+    background: none;
+    color: #dc2626;
+    font-weight: 600;
+    margin-top: 10px;
+    padding: 10px;
+  }
+  .msg {
+    margin-top: 14px;
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    display: none;
+  }
+  .msg.show { display: block; }
+  .msg.success { background: #ecfdf5; color: #047857; }
+  .msg.error { background: #fef2f2; color: #dc2626; }
+  #pinSection { display: none; }
+  .hint {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h1>🔒 Landing Page PIN</h1>
+  <div class="subtitle" id="stepSubtitle">Log in to set or change the PIN that protects your contact card.</div>
+
+  <div id="loginSection">
+    <label>Email</label>
+    <input type="email" id="loginEmail" autocomplete="email">
+    <label>Password</label>
+    <input type="password" id="loginPassword" autocomplete="current-password">
+    <button onclick="doLogin()" id="loginBtn">Log In</button>
+    <div id="loginMsg" class="msg error"></div>
+  </div>
+
+  <div id="pinSection">
+    <label>New PIN (4-6 digits)</label>
+    <input type="tel" inputmode="numeric" pattern="[0-9]*" id="newPin" maxlength="6" placeholder="e.g. 1234">
+    <div class="hint">Leave blank and press "Save PIN" to remove protection entirely.</div>
+    <button onclick="savePin()" id="saveBtn">Save PIN</button>
+    <div id="pinMsg" class="msg"></div>
+  </div>
+</div>
+
+<script>
+  const API_URL = 'https://tap-share-connect-production.up.railway.app';
+  let token = null;
+
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+    const msg = document.getElementById('loginMsg');
+    msg.classList.remove('show');
+
+    if (!email || !password) {
+      msg.textContent = 'Enter your email and password';
+      msg.classList.add('show');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Logging in...';
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.token) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      token = data.token;
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('pinSection').style.display = 'block';
+      document.getElementById('stepSubtitle').textContent = `Logged in as ${data.user.fullName || data.user.email}. Set your PIN below.`;
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.classList.add('show');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Log In';
+    }
+  }
+
+  async function savePin() {
+    const pin = document.getElementById('newPin').value.trim();
+    const btn = document.getElementById('saveBtn');
+    const msg = document.getElementById('pinMsg');
+    msg.classList.remove('show', 'success', 'error');
+
+    if (pin && !/^\d{4,6}$/.test(pin)) {
+      msg.textContent = 'PIN must be 4-6 digits';
+      msg.classList.add('show', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const res = await fetch(`${API_URL}/api/customer/settings/pin`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ pin })
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Failed to save PIN');
+
+      msg.textContent = data.protected
+        ? '✅ PIN set! Your landing page now requires this PIN.'
+        : '✅ PIN removed. Your landing page is open again, like before.';
+      msg.classList.add('show', 'success');
+      document.getElementById('newPin').value = '';
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.classList.add('show', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save PIN';
+    }
+  }
+</script>
+
+</body>
+</html>
