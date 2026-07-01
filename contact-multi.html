@@ -541,6 +541,97 @@
       font-family: inherit;
     }
 
+    /* ===== PIN GATE ===== */
+    .pin-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--gray-50);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .pin-overlay.show {
+      display: flex;
+    }
+
+    .pin-box {
+      background: white;
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .pin-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .pin-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 6px;
+    }
+
+    .pin-subtitle {
+      font-size: 13px;
+      color: var(--gray-400);
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    .pin-input {
+      width: 100%;
+      padding: 16px;
+      font-size: 24px;
+      letter-spacing: 8px;
+      text-align: center;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      font-family: inherit;
+    }
+
+    .pin-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .pin-error {
+      display: none;
+      color: #dc2626;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .pin-error.show {
+      display: block;
+    }
+
+    .pin-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .page-hidden {
+      display: none !important;
+    }
+
     /* ===== FOOTER ===== */
     .footer {
       text-align: center;
@@ -580,6 +671,18 @@
       </div>
     </div>
     <button class="modal-btn" onclick="closeModal()">Got it! ✓</button>
+  </div>
+</div>
+
+<!-- PIN Gate -->
+<div id="pinOverlay" class="pin-overlay">
+  <div class="pin-box">
+    <div class="pin-icon">🔒</div>
+    <div class="pin-title">Protected Contact Card</div>
+    <div class="pin-subtitle">Enter the PIN to view this contact's details</div>
+    <input type="tel" inputmode="numeric" pattern="[0-9]*" id="pinInput" class="pin-input" placeholder="••••" maxlength="6" autocomplete="off">
+    <div id="pinError" class="pin-error">Incorrect PIN, please try again</div>
+    <button class="pin-submit" onclick="verifyPin()">Unlock →</button>
   </div>
 </div>
 
@@ -748,6 +851,18 @@
       photo: '', // Paste an image URL here to show a real photo instead of the emoji
       color: '#f59e0b',
       colorDark: '#d97706'
+    },
+    bennie: {
+      userId: 11,
+      name: 'Bennie Coetzee',
+      title: '', // Add his job title here if he wants one shown
+      company: 'Schuurman Lasercut',
+      phone: '', +27 083 542 2358
+      email: 'Benjamin_coetzee@hotmail.com',
+      emoji: '👤',
+      photo: '', // Paste an image URL here to show a real photo instead of the emoji
+      color: '#3b82f6',
+      colorDark: '#2563eb'
     }
   };
 
@@ -760,7 +875,7 @@
   // ============================================================
   // INIT
   // ============================================================
-  function init() {
+  async function init() {
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user') || 'you';
     currentUser = userParam in users ? userParam : 'you';
@@ -769,6 +884,85 @@
 
     // Use the known database ID for this person (URL ?id= can still override it if ever needed)
     currentUserId = params.get('id') || userData.userId;
+
+    // Silently log this tap as a scan (counts even if the visitor never fills in the form,
+    // and even if they never get past the PIN gate)
+    logScan();
+
+    // Hide the card until we know whether a PIN is required
+    document.querySelector('.page').classList.add('page-hidden');
+
+    const pinRequired = await checkPinRequired();
+    if (pinRequired) {
+      document.getElementById('pinOverlay').classList.add('show');
+      document.getElementById('pinInput').focus();
+    } else {
+      renderCard();
+    }
+  }
+
+  // ============================================================
+  // PIN GATE
+  // ============================================================
+  async function checkPinRequired() {
+    try {
+      const res = await fetch(`${API_URL}/api/pin-required/${currentUserId}`);
+      if (!res.ok) return false;
+      const data = await res.json();
+      return !!data.required;
+    } catch (err) {
+      console.log('PIN check failed, defaulting to unlocked:', err);
+      return false; // fail open - never trap a visitor because of a network hiccup
+    }
+  }
+
+  async function verifyPin() {
+    const pin = document.getElementById('pinInput').value.trim();
+    const errorEl = document.getElementById('pinError');
+    errorEl.classList.remove('show');
+
+    if (!pin) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/verify-pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUserId, pin })
+      });
+      const data = await res.json();
+
+      if (data.valid) {
+        document.getElementById('pinOverlay').classList.remove('show');
+        renderCard();
+      } else {
+        errorEl.classList.add('show');
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinInput').focus();
+      }
+    } catch (err) {
+      errorEl.textContent = 'Something went wrong, please try again';
+      errorEl.classList.add('show');
+    }
+  }
+
+  // Let visitors press Enter instead of tapping Unlock
+  document.addEventListener('DOMContentLoaded', () => {
+    const pinInput = document.getElementById('pinInput');
+    if (pinInput) {
+      pinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') verifyPin();
+      });
+    }
+  });
+
+  // ============================================================
+  // RENDER CARD (populates the contact card - runs immediately if
+  // no PIN is set, or right after a correct PIN is entered)
+  // ============================================================
+  function renderCard() {
+    const userData = users[currentUser];
+
+    document.querySelector('.page').classList.remove('page-hidden');
 
     // Update hero
     document.getElementById('displayName').textContent = userData.name;
@@ -799,9 +993,6 @@
 
     // Update page title
     document.title = `TagMe - ${userData.name}`;
-
-    // Silently log this tap as a scan (counts even if the visitor never fills in the form)
-    logScan();
   }
 
   // ============================================================
