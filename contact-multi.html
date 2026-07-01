@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="TagMe">
+  <title>TagMe - Contact Card</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue: #3b82f6;
+      --blue-dark: #2563eb;
+      --blue-light: #eff6ff;
+      --pink: #ec4899;
+      --pink-dark: #db2777;
+      --purple: #8b5cf6;
+      --purple-dark: #7c3aed;
+      --amber: #f59e0b;
+      --amber-dark: #d97706;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --white: #ffffff;
+      --shadow: 0 20px 60px rgba(0,0,0,0.15);
+      --radius: 20px;
+      --accent: var(--blue);
+      --accent-dark: var(--blue-dark);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: white;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== HERO SECTION ===== */
+    .hero {
+      background: linear-gradient(160deg, var(--accent) 0%, var(--accent-dark) 100%);
+      padding: 48px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.08) 0%, transparent 60%);
+    }
+
+    .hero-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 32px;
+      opacity: 0.9;
+    }
+
+    .hero-logo img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    .hero-logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+    }
+
+    .avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      border: 3px solid rgba(255,255,255,0.4);
+      overflow: hidden;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .hero-title {
+      font-size: 15px;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 4px;
+    }
+
+    .hero-company {
+      font-size: 13px;
+      color: rgba(255,255,255,0.65);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ===== CARD ===== */
+    .card {
+      background: white;
+      border-radius: var(--radius) var(--radius) 0 0;
+      margin-top: -24px;
+      padding: 28px 24px;
+      flex: 1;
+      position: relative;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    }
+
+    /* ===== SAVE CONTACT BUTTON ===== */
+    .save-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 15px rgba(59,130,246,0.35);
+      letter-spacing: 0.3px;
+    }
+
+    .save-btn:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+    }
+
+    .save-btn-icon {
+      font-size: 20px;
+    }
+
+    .save-hint {
+      text-align: center;
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-bottom: 24px;
+    }
+
+    /* ===== CONTACT DETAILS ===== */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--gray-400);
+      margin-bottom: 12px;
+    }
+
+    .contact-details {
+      background: var(--gray-50);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--gray-200);
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+
+    .contact-item:last-child {
+      border-bottom: none;
+    }
+
+    .contact-item:active {
+      background: var(--gray-100);
+    }
+
+    .contact-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--blue-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .contact-info {
+      flex: 1;
+    }
+
+    .contact-label {
+      font-size: 11px;
+      color: var(--gray-400);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .contact-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-top: 1px;
+    }
+
+    .contact-arrow {
+      color: var(--gray-400);
+      font-size: 12px;
+    }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--gray-200);
+    }
+
+    .divider-text {
+      font-size: 12px;
+      color: var(--gray-400);
+      font-weight: 500;
+    }
+
+    /* ===== VISITOR FORM ===== */
+    .visitor-form {
+      display: none;
+    }
+
+    .visitor-form.show {
+      display: block;
+    }
+
+    .form-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .form-subtitle {
+      font-size: 13px;
+      color: var(--gray-400);
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--gray-900);
+      transition: border-color 0.2s ease;
+      background: white;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--blue-light);
+    }
+
+    .input-group input::placeholder {
+      color: var(--gray-400);
+    }
+
+    .required {
+      color: #ef4444;
+    }
+
+    .form-actions {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-cancel {
+      padding: 13px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-submit {
+      padding: 13px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+
+    .btn-submit:active {
+      transform: scale(0.98);
+    }
+
+    /* ===== SHARE MY INFO TRIGGER ===== */
+    .share-trigger {
+      width: 100%;
+      padding: 14px;
+      background: white;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .share-trigger:active {
+      background: var(--blue-light);
+    }
+
+    /* ===== SUCCESS STATE ===== */
+    .success-card {
+      display: none;
+      text-align: center;
+      padding: 24px 0;
+    }
+
+    .success-card.show {
+      display: block;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: #f0fdf4;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 16px;
+    }
+
+    .success-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+
+    .success-text {
+      font-size: 14px;
+      color: var(--gray-400);
+      line-height: 1.6;
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: white;
+      border-radius: 24px 24px 0 0;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--gray-200);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+
+    .modal-icon {
+      font-size: 40px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+
+    .modal-text {
+      font-size: 14px;
+      color: var(--gray-400);
+      text-align: center;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .modal-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .modal-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--gray-50);
+      border-radius: 10px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+
+    .modal-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* ===== PIN GATE ===== */
+    .pin-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--gray-50);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .pin-overlay.show {
+      display: flex;
+    }
+
+    .pin-box {
+      background: white;
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .pin-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .pin-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 6px;
+    }
+
+    .pin-subtitle {
+      font-size: 13px;
+      color: var(--gray-400);
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    .pin-input {
+      width: 100%;
+      padding: 16px;
+      font-size: 24px;
+      letter-spacing: 8px;
+      text-align: center;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      font-family: inherit;
+    }
+
+    .pin-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .pin-error {
+      display: none;
+      color: #dc2626;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .pin-error.show {
+      display: block;
+    }
+
+    .pin-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .page-hidden {
+      display: none !important;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      text-align: center;
+      padding: 20px 24px 32px;
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<!-- vCard Instructions Modal -->
+<div id="vcardModal" class="modal-overlay" onclick="closeModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-icon">📱</div>
+    <div class="modal-title">Save Contact</div>
+    <div class="modal-text">Follow these steps to save the contact to your phone</div>
+    <div class="modal-steps">
+      <div class="modal-step">
+        <div class="step-num">1</div>
+        <div class="step-text">The contact file has been downloaded</div>
+      </div>
+      <div class="modal-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Open the file from your downloads</div>
+      </div>
+      <div class="modal-step">
+        <div class="step-num">3</div>
+        <div class="step-text">Tap "Add to Contacts" when prompted</div>
+      </div>
+    </div>
+    <button class="modal-btn" onclick="closeModal()">Got it! ✓</button>
+  </div>
+</div>
+
+<!-- PIN Gate -->
+<div id="pinOverlay" class="pin-overlay">
+  <div class="pin-box">
+    <div class="pin-icon">🔒</div>
+    <div class="pin-title">Protected Contact Card</div>
+    <div class="pin-subtitle">Enter the PIN to view this contact's details</div>
+    <input type="tel" inputmode="numeric" pattern="[0-9]*" id="pinInput" class="pin-input" placeholder="••••" maxlength="6" autocomplete="off">
+    <div id="pinError" class="pin-error">Incorrect PIN, please try again</div>
+    <button class="pin-submit" onclick="verifyPin()">Unlock →</button>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Hero Section -->
+  <div class="hero" id="heroSection">
+    <div class="hero-logo">
+      <img src="https://raw.githubusercontent.com/herschelha/tap-share-connect/main/logo.jpeg" 
+           alt="Hash3D" 
+           onerror="this.style.display='none'">
+      <span class="hero-logo-text">TagMe by Hash3D</span>
+    </div>
+    <div class="avatar">
+      <span id="avatarEmoji">👤</span>
+    </div>
+    <div class="hero-name" id="displayName">Your Name</div>
+    <div class="hero-title" id="displayTitle">Your Title</div>
+    <div class="hero-company" id="displayCompany">Your Company</div>
+  </div>
+
+  <!-- Main Card -->
+  <div class="card">
+
+    <!-- Step 1: Save Contact (PRIMARY ACTION) -->
+    <button class="save-btn" onclick="saveContact()">
+      <span class="save-btn-icon">📲</span>
+      Save Contact to Phone
+    </button>
+    <p class="save-hint">Tap to add to your contacts instantly</p>
+
+    <!-- Contact Details -->
+    <p class="section-label">Contact Details</p>
+    <div class="contact-details">
+      <a id="phoneLink" href="#" class="contact-item">
+        <div class="contact-icon">📞</div>
+        <div class="contact-info">
+          <div class="contact-label">Phone</div>
+          <div class="contact-value" id="displayPhone">+27 123 456 7890</div>
+        </div>
+        <div class="contact-arrow">›</div>
+      </a>
+      <a id="emailLink" href="#" class="contact-item">
+        <div class="contact-icon">✉️</div>
+        <div class="contact-info">
+          <div class="contact-label">Email</div>
+          <div class="contact-value" id="displayEmail">email@example.com</div>
+        </div>
+        <div class="contact-arrow">›</div>
+      </a>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">Share your details too?</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- Visitor Form Trigger -->
+    <div id="formTrigger">
+      <button class="share-trigger" onclick="showForm()">
+        💬 Leave your contact details
+      </button>
+    </div>
+
+    <!-- Visitor Form -->
+    <div id="visitorForm" class="visitor-form">
+      <div class="form-title">Your Details</div>
+      <div class="form-subtitle">We'll follow up and keep in touch</div>
+
+      <div class="input-group">
+        <label>Full Name <span class="required">*</span></label>
+        <input type="text" id="visitorName" placeholder="John Smith" autocomplete="name">
+      </div>
+
+      <div class="input-group">
+        <label>Email <span class="required">*</span></label>
+        <input type="email" id="visitorEmail" placeholder="john@company.com" autocomplete="email">
+      </div>
+
+      <div class="input-group">
+        <label>Phone</label>
+        <input type="tel" id="visitorPhone" placeholder="+27 82 123 4567" autocomplete="tel">
+      </div>
+
+      <div class="input-group">
+        <label>Company</label>
+        <input type="text" id="visitorCompany" placeholder="Your company" autocomplete="organization">
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="hideForm()">Cancel</button>
+        <button class="btn-submit" onclick="submitForm()">Send Details →</button>
+      </div>
+    </div>
+
+    <!-- Success State -->
+    <div id="successCard" class="success-card">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Details Sent!</div>
+      <div class="success-text">
+        Thanks! Your details have been shared.<br>
+        We'll be in touch soon.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Powered by <a href="#">TagMe by Hash3D</a> · Professional NFC Contact Sharing
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  // USER DATA - Update these details for each person
+  // ============================================================
+  const users = {
+    you: {
+      userId: 1,
+      name: 'Herschel Ismail',
+      title: 'Works Director',
+      company: 'Hash3D',
+      phone: '+27 083 387 7270',
+      email: 'herschelismail@gmail.com',
+      emoji: '👨‍💼',
+      photo: '', // Paste an image URL here to show a real photo instead of the emoji
+      color: '#3b82f6',
+      colorDark: '#2563eb'
+    },
+    nicola: {
+      userId: 2,
+      name: 'Nicola',
+      title: 'Family',
+      company: 'Hash3D',
+      phone: '+27 081 054 0593',
+      email: 'nicolaismail@gmail.com',
+      emoji: '👩',
+      photo: '', // Paste an image URL here to show a real photo instead of the emoji
+      color: '#ec4899',
+      colorDark: '#db2777'
+    },
+    storm: {
+      userId: 3,
+      name: 'Storm Ismail',
+      title: 'Technical 3D Developer',
+      company: 'Hash3D',
+      phone: '+27 060 453 9168',
+      email: 'yvngstormzy@gmail.com',
+      emoji: '⚡',
+      photo: '', // Paste an image URL here to show a real photo instead of the emoji
+      color: '#8b5cf6',
+      colorDark: '#7c3aed'
+    },
+    raven: {
+      userId: 4,
+      name: 'Raven Ismail',
+      title: 'Family',
+      company: 'Hash3D',
+      phone: '+27 078 987 7401',
+      email: 'ravenismail13@gmail.com',
+      emoji: '🦅',
+      photo: '', // Paste an image URL here to show a real photo instead of the emoji
+      color: '#f59e0b',
+      colorDark: '#d97706'
+    },
+    bennie: {
+      userId: 11,
+      name: 'Bennie Coetzee',
+      title: '', // Add his job title here if he wants one shown
+      company: 'Schuurman Lasercut',
+      phone: '', // Add his phone number here
+      email: 'bennie@sl.co.za',
+      emoji: '👤',
+      photo: '', // Paste an image URL here to show a real photo instead of the emoji
+      color: '#3b82f6',
+      colorDark: '#2563eb'
+    }
+  };
+
+  // Backend API URL
+  const API_URL = 'https://tap-share-connect-production.up.railway.app';
+
+  let currentUser = 'you';
+  let currentUserId = null; // The TagMe customer's user ID
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  async function init() {
+    const params = new URLSearchParams(window.location.search);
+    const userParam = params.get('user') || 'you';
+    currentUser = userParam in users ? userParam : 'you';
+
+    const userData = users[currentUser];
+
+    // Use the known database ID for this person (URL ?id= can still override it if ever needed)
+    currentUserId = params.get('id') || userData.userId;
+
+    // Silently log this tap as a scan (counts even if the visitor never fills in the form,
+    // and even if they never get past the PIN gate)
+    logScan();
+
+    // Hide the card until we know whether a PIN is required
+    document.querySelector('.page').classList.add('page-hidden');
+
+    const pinRequired = await checkPinRequired();
+    if (pinRequired) {
+      document.getElementById('pinOverlay').classList.add('show');
+      document.getElementById('pinInput').focus();
+    } else {
+      renderCard();
+    }
+  }
+
+  // ============================================================
+  // PIN GATE
+  // ============================================================
+  async function checkPinRequired() {
+    try {
+      const res = await fetch(`${API_URL}/api/pin-required/${currentUserId}`);
+      if (!res.ok) return false;
+      const data = await res.json();
+      return !!data.required;
+    } catch (err) {
+      console.log('PIN check failed, defaulting to unlocked:', err);
+      return false; // fail open - never trap a visitor because of a network hiccup
+    }
+  }
+
+  async function verifyPin() {
+    const pin = document.getElementById('pinInput').value.trim();
+    const errorEl = document.getElementById('pinError');
+    errorEl.classList.remove('show');
+
+    if (!pin) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/verify-pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUserId, pin })
+      });
+      const data = await res.json();
+
+      if (data.valid) {
+        document.getElementById('pinOverlay').classList.remove('show');
+        renderCard();
+      } else {
+        errorEl.classList.add('show');
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinInput').focus();
+      }
+    } catch (err) {
+      errorEl.textContent = 'Something went wrong, please try again';
+      errorEl.classList.add('show');
+    }
+  }
+
+  // Let visitors press Enter instead of tapping Unlock
+  document.addEventListener('DOMContentLoaded', () => {
+    const pinInput = document.getElementById('pinInput');
+    if (pinInput) {
+      pinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') verifyPin();
+      });
+    }
+  });
+
+  // ============================================================
+  // RENDER CARD (populates the contact card - runs immediately if
+  // no PIN is set, or right after a correct PIN is entered)
+  // ============================================================
+  function renderCard() {
+    const userData = users[currentUser];
+
+    document.querySelector('.page').classList.remove('page-hidden');
+
+    // Update hero
+    document.getElementById('displayName').textContent = userData.name;
+    document.getElementById('displayTitle').textContent = userData.title;
+    document.getElementById('displayCompany').textContent = userData.company;
+
+    // Show real photo if provided, otherwise fall back to emoji
+    const avatarBox = document.querySelector('.avatar');
+    if (userData.photo) {
+      avatarBox.innerHTML = `<img src="${userData.photo}" alt="${userData.name}" onerror="this.parentElement.innerHTML='<span>${userData.emoji}</span>'">`;
+    } else {
+      avatarBox.innerHTML = `<span id="avatarEmoji">${userData.emoji}</span>`;
+    }
+
+    // Update contact details
+    document.getElementById('displayPhone').textContent = userData.phone;
+    document.getElementById('displayEmail').textContent = userData.email;
+    document.getElementById('phoneLink').href = `tel:${userData.phone}`;
+    document.getElementById('emailLink').href = `mailto:${userData.email}`;
+
+    // Update hero gradient color
+    document.querySelector('.hero').style.background = 
+      `linear-gradient(160deg, ${userData.color} 0%, ${userData.colorDark} 100%)`;
+
+    // Update save button color
+    document.querySelector('.save-btn').style.background = 
+      `linear-gradient(135deg, ${userData.color}, ${userData.colorDark})`;
+
+    // Update page title
+    document.title = `TagMe - ${userData.name}`;
+  }
+
+  // ============================================================
+  // LOG SCAN (fires once, the moment the tag is tapped / page loads)
+  // ============================================================
+  function logScan() {
+    if (!currentUserId) return;
+    fetch(`${API_URL}/api/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUserId })
+    }).catch(err => console.log('Scan log failed (non-critical):', err));
+  }
+
+  // ============================================================
+  // SAVE CONTACT (vCard)
+  // ============================================================
+  function saveContact() {
+    const userData = users[currentUser];
+
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${userData.name}
+N:${userData.name.split(' ').reverse().join(';')};;;
+TITLE:${userData.title}
+ORG:${userData.company}
+TEL;TYPE=CELL:${userData.phone}
+EMAIL;TYPE=WORK:${userData.email}
+NOTE:Connected via TagMe by Hash3D
+END:VCARD`;
+
+    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${userData.name.replace(/\s+/g, '_')}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+    // Show instructions modal
+    setTimeout(() => {
+      document.getElementById('vcardModal').classList.add('show');
+    }, 400);
+  }
+
+  // ============================================================
+  // VISITOR FORM
+  // ============================================================
+  function showForm() {
+    document.getElementById('formTrigger').style.display = 'none';
+    document.getElementById('visitorForm').classList.add('show');
+    document.getElementById('visitorName').focus();
+  }
+
+  function hideForm() {
+    document.getElementById('visitorForm').classList.remove('show');
+    document.getElementById('formTrigger').style.display = 'block';
+  }
+
+  async function submitForm() {
+    const name = document.getElementById('visitorName').value.trim();
+    const email = document.getElementById('visitorEmail').value.trim();
+    const phone = document.getElementById('visitorPhone').value.trim();
+    const company = document.getElementById('visitorCompany').value.trim();
+
+    if (!name || !email) {
+      alert('Please fill in your name and email');
+      return;
+    }
+
+    const btn = document.querySelector('.btn-submit');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    try {
+      // Try to post to backend API
+      const response = await fetch(`${API_URL}/api/visitors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUserId,
+          name,
+          email,
+          phone,
+          company,
+          user: currentUser
+        })
+      });
+
+      if (!response.ok) throw new Error('API error');
+
+    } catch (error) {
+      // Fallback: save to localStorage
+      console.log('Saving to localStorage as fallback');
+      const key = `tagme_visitors_${currentUser}`;
+      const visitors = JSON.parse(localStorage.getItem(key) || '[]');
+      visitors.push({ name, email, phone, company, date: new Date().toISOString() });
+      localStorage.setItem(key, JSON.stringify(visitors));
+    }
+
+    // Show success
+    document.getElementById('visitorForm').classList.remove('show');
+    document.getElementById('successCard').classList.add('show');
+  }
+
+  // ============================================================
+  // MODAL
+  // ============================================================
+  function closeModal() {
+    document.getElementById('vcardModal').classList.remove('show');
+  }
+
+  // ============================================================
+  // START
+  // ============================================================
+  init();
+</script>
+</body>
+</html>
