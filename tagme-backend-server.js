@@ -339,6 +339,70 @@ app.post('/api/scan', async (req, res) => {
   }
 });
 
+// ==================== LANDING PAGE PIN PROTECTION ====================
+
+// Public: check if this person's landing page requires a PIN before showing contact info
+app.get('/api/pin-required/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await pool.query('SELECT landing_pin FROM users WHERE id = $1', [userId]);
+    if (result.rows.length === 0) {
+      return res.json({ required: false });
+    }
+    res.json({ required: !!result.rows[0].landing_pin });
+  } catch (error) {
+    console.error('Error checking pin requirement:', error);
+    res.json({ required: false }); // fail open so a broken check never locks visitors out
+  }
+});
+
+// Public: verify a PIN entered on the landing page
+app.post('/api/verify-pin', async (req, res) => {
+  try {
+    const { userId, pin } = req.body;
+    if (!userId || !pin) {
+      return res.status(400).json({ valid: false, error: 'userId and pin are required' });
+    }
+
+    const result = await pool.query('SELECT landing_pin FROM users WHERE id = $1', [userId]);
+    if (result.rows.length === 0 || !result.rows[0].landing_pin) {
+      // No PIN set for this user - treat as valid so the page never gets stuck
+      return res.json({ valid: true });
+    }
+
+    const isValid = await bcrypt.compare(pin, result.rows[0].landing_pin);
+    res.json({ valid: isValid });
+  } catch (error) {
+    console.error('Error verifying pin:', error);
+    res.status(500).json({ valid: false, error: error.message });
+  }
+});
+
+// Authenticated: customer sets, changes, or removes their own landing page PIN
+// Send { "pin": "1234" } to set/change it, or { "pin": "" } to remove protection entirely
+app.put('/api/customer/settings/pin', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { pin } = req.body;
+
+    if (pin === '' || pin === null || pin === undefined) {
+      await pool.query('UPDATE users SET landing_pin = NULL WHERE id = $1', [userId]);
+      return res.json({ success: true, protected: false });
+    }
+
+    if (!/^\d{4,6}$/.test(pin)) {
+      return res.status(400).json({ error: 'PIN must be 4-6 digits' });
+    }
+
+    const hashedPin = await bcrypt.hash(pin, 10);
+    await pool.query('UPDATE users SET landing_pin = $1 WHERE id = $2', [hashedPin, userId]);
+    res.json({ success: true, protected: true });
+  } catch (error) {
+    console.error('Error setting pin:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ============================================================================
 // PASTE THIS ENTIRE SECTION INTO YOUR tagme-backend-server.js
 // USES verifyToken (not authenticateToken) - MATCHES YOUR SERVER
@@ -520,7 +584,7 @@ app.get('/api/customer/analytics/visitors', verifyToken, async (req, res) => {
  */
 app.get('/api/customer/analytics/visitors/by-date/:date', verifyToken, async (req, res) => {
   try {
-    const userId = reqreq.user.userId;
+    const userId = req.user.userId;
     const { date } = req.params;
     
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
