@@ -239,19 +239,19 @@ app.get('/api/analytics/scans', verifyToken, async (req, res) => {
   try {
     const userId = req.user.role === 'admin' ? null : req.user.userId;
     
-    // Last 30 days scans
+    // Last 30 days of actual tag taps (scans), not form-fill visitors
     let query = `
       SELECT 
-        DATE(created_at) as date,
+        DATE(scanned_at) as date,
         COUNT(*) as count
-      FROM visitors
+      FROM scans
     `;
     
     if (userId) {
       query += ` WHERE user_id = $1`;
     }
     
-    query += ` GROUP BY DATE(created_at) ORDER BY date DESC LIMIT 30`;
+    query += ` GROUP BY DATE(scanned_at) ORDER BY date DESC LIMIT 30`;
     
     const result = userId 
       ? await pool.query(query, [userId])
