@@ -321,20 +321,38 @@ app.post('/api/visitors', async (req, res) => {
 // Log a tag tap/scan (called the moment the landing page loads — no form required)
 app.post('/api/scan', async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId, latitude, longitude } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'userId is required' });
     }
 
     const result = await pool.query(
-      'INSERT INTO scans (user_id) VALUES ($1) RETURNING *',
-      [userId]
+      'INSERT INTO scans (user_id, latitude, longitude) VALUES ($1, $2, $3) RETURNING *',
+      [userId, latitude || null, longitude || null]
     );
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error logging scan:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get recent scans with location (for the map thumbnails on the dashboard)
+app.get('/api/customer/analytics/scans', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await pool.query(
+      'SELECT id, latitude, longitude, scanned_at FROM scans WHERE user_id = $1 ORDER BY scanned_at DESC LIMIT $2',
+      [userId, limit]
+    );
+
+    res.json({ scans: result.rows });
+  } catch (error) {
+    console.error('Error fetching scans:', error);
     res.status(500).json({ error: error.message });
   }
 });
