@@ -125,12 +125,12 @@ app.get('/api/admin/dashboard', verifyToken, async (req, res) => {
     const totalScans = scans.rows[0].count;
     
     // Total revenue
-    const revenue = await pool.query('SELECT SUM(price) as total FROM subscriptions WHERE status = $1', ['active']);
+    const revenue = await pool.query('SELECT SUM(amount_paid) as total FROM subscriptions WHERE status = $1', ['active']);
     const totalRevenue = revenue.rows[0].total || 0;
     
     // Monthly revenue
     const monthlyRevenue = await pool.query(
-      'SELECT SUM(price) as total FROM subscriptions WHERE status = $1 AND created_at > NOW() - INTERVAL \'30 days\'',
+      'SELECT SUM(amount_paid) as total FROM subscriptions WHERE status = $1 AND started_at > NOW() - INTERVAL \'30 days\'',
       ['active']
     );
     const monthRevenue = monthlyRevenue.rows[0].total || 0;
@@ -141,18 +141,23 @@ app.get('/api/admin/dashboard', verifyToken, async (req, res) => {
     );
     const monthScans = scansThisMonth.rows[0].count;
     
-    // All customers with stats
+    // All customers with stats (uses each customer's most recent subscription row)
     const allCustomers = await pool.query(`
       SELECT 
         u.id, 
         u.full_name, 
         u.email, 
-        s.tier,
-        s.price,
+        s.amount_paid,
         s.status,
+        s.expires_at,
         (SELECT COUNT(*) FROM scans WHERE user_id = u.id) as total_scans
       FROM users u
-      LEFT JOIN subscriptions s ON u.id = s.user_id
+      LEFT JOIN LATERAL (
+        SELECT * FROM subscriptions
+        WHERE subscriptions.user_id = u.id
+        ORDER BY started_at DESC
+        LIMIT 1
+      ) s ON true
       WHERE u.role = 'customer'
       ORDER BY u.created_at DESC
     `);
@@ -166,6 +171,36 @@ app.get('/api/admin/dashboard', verifyToken, async (req, res) => {
       customers: allCustomers.rows
     });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Subscriptions that are expired or expiring within 7 days (for the admin alerts panel)
+app.get('/api/admin/subscriptions/alerts', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    // Uses each customer's most recent subscription row, in case of multiple over time
+    const latestSubs = `
+      SELECT DISTINCT ON (s.user_id) s.id, s.user_id, s.status, s.expires_at, u.full_name, u.email
+      FROM subscriptions s
+      JOIN users u ON u.id = s.user_id
+      ORDER BY s.user_id, s.started_at DESC
+    `;
+
+    const expired = await pool.query(
+      `SELECT * FROM (${latestSubs}) latest WHERE latest.expires_at < NOW() ORDER BY latest.expires_at ASC`
+    );
+
+    const expiringSoon = await pool.query(
+      `SELECT * FROM (${latestSubs}) latest WHERE latest.expires_at >= NOW() AND latest.expires_at <= NOW() + INTERVAL '7 days' ORDER BY latest.expires_at ASC`
+    );
+
+    res.json({ expired: expired.rows, expiringSoon: expiringSoon.rows });
+  } catch (error) {
+    console.error('Error fetching subscription alerts:', error);
     res.status(500).json({ error: error.message });
   }
 });
